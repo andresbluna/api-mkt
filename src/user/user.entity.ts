@@ -1,5 +1,11 @@
-// user.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { InteractionLog } from './interaction-log.entity';
 
 @Entity('users')
@@ -26,6 +32,10 @@ export class User {
   updated_at: Date;
 
   // 🔗 Relación con logs
-  @OneToMany(() => InteractionLog, (log) => log.user)
+  @OneToMany(() => InteractionLog, (log) => log.user, {
+    eager: false,
+    cascade: false,
+  })
   logs: InteractionLog[];
 }
+

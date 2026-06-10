@@ -1,11 +1,20 @@
-// interaction-log.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('interaction_logs')
 export class InteractionLog {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  user_id: number;
 
   @Column()
   action: string;
@@ -20,5 +29,7 @@ export class InteractionLog {
   @ManyToOne(() => User, (user) => user.logs, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }
+

@@ -1,59 +1,57 @@
-// users.controller.ts
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // 👤 Crear usuario
+  /**
+   * Crear nuevo usuario
+   */
   @Post()
-  async createUser(@Body() body: any) {
-    const { firebase_uid, email, name } = body;
-
-    const existingUser = await this.usersService.findByFirebase(firebase_uid);
-
-    if (existingUser) {
-      return existingUser; // evita duplicados
-    }
-
-    return this.usersService.createUser({
-      firebase_uid,
-      email,
-      name,
-    });
+  async createUser(@Body() dto: CreateUserDto) {
+    return await this.usersService.createUser(dto);
   }
 
-  // 🔍 Obtener usuario por Firebase UID
+  /**
+   * Obtener usuario por Firebase UID
+   */
   @Get('firebase/:firebase_uid')
   async getByFirebase(@Param('firebase_uid') firebase_uid: string) {
-    const user = await this.usersService.findByFirebase(firebase_uid);
-
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
-
-    return user;
+    return await this.usersService.getUserByFirebaseUid(firebase_uid);
   }
 
-  // 📊 Crear log para un usuario
-  @Post(':id/logs')
-  async createLog(@Param('id') id: string, @Body() body: any) {
-    const { action, metadata } = body;
-
-    return this.usersService.createLog(Number(id), action, metadata);
+  /**
+   * Obtener usuario por ID
+   */
+  @Get(':id')
+  async getUser(@Param('id') id: string) {
+    return await this.usersService.getUserById(Number(id));
   }
 
-  // 📈 Obtener logs de un usuario
+  /**
+   * Actualizar usuario
+   */
+  @Patch(':id')
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return await this.usersService.updateUser(Number(id), dto);
+  }
+
+  /**
+   * Obtener logs del usuario
+   */
   @Get(':id/logs')
-  async getLogs(@Param('id') id: string) {
-    return this.usersService.getLogs(Number(id));
+  async getUserLogs(@Param('id') id: string) {
+    return await this.usersService.getUserLogs(Number(id));
+  }
+
+  /**
+   * Obtener estadísticas del usuario
+   */
+  @Get(':id/stats')
+  async getUserStats(@Param('id') id: string) {
+    return await this.usersService.getUserStats(Number(id));
   }
 }
+
