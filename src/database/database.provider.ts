@@ -1,4 +1,4 @@
-// database.provider.ts
+
 import { Pool } from 'pg';
 
 export const databaseProvider = {

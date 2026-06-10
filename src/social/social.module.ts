@@ -5,7 +5,7 @@ import { SocialController } from './social.controller';
 import { SocialService } from './social.service';
 
 import { SocialAccount } from './entities/social-account.entity';
-import { User } from '../users/entities/user.entity';
+import { User } from '../user/user.entity';
 
 @Module({
   imports: [
@@ -22,3 +22,4 @@ import { User } from '../users/entities/user.entity';
   exports: [SocialService],
 })
 export class SocialModule {}
+
