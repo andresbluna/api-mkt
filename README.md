@@ -77,7 +77,7 @@ PORT=3000
 NODE_ENV=development
 ```
 
-## 📚 Documentación
+## 📚 Documentación PARA TU PUTA MADRE
 
 - **[DOCUMENTATION.md](.github/git/DOCUMENTATION.md)** - Documentación técnica completa
 - **[API_EXAMPLES.md](.github/git/API_EXAMPLES.md)** - Ejemplos de uso con cURL
