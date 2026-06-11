@@ -22,7 +22,7 @@ export class GeminiService {
     }
 
     try {
-      const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
+      const model = this.client.getGenerativeModel({ model: 'gemini-2.5-flash' });
       const result = await model.generateContent(
         `Genera un caption atractivo y persuasivo para Instagram sobre: ${prompt}. 
          El caption debe ser breve, enganchador y con emojis relevantes.`,
@@ -46,7 +46,7 @@ export class GeminiService {
     }
 
     try {
-      const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
+      const model = this.client.getGenerativeModel({ model: 'gemini-2.5-flash' });
       const result = await model.generateContent(
         `Genera 10 hashtags relevantes y populares para un post sobre: ${prompt}.
          Devuelve solo los hashtags separados por comas, sin el símbolo #.`,
@@ -101,7 +101,7 @@ export class GeminiService {
     }
 
     try {
-      const model = this.client.getGenerativeModel({ model: 'gemini-pro' });
+      const model = this.client.getGenerativeModel({ model: 'gemini-2.5-flash' });
       const result = await model.generateContent(
         `Optimiza el siguiente contenido para ${platform}:
          "${content}"
