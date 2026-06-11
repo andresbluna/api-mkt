@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleGenAI, Modality } from '@google/genai';
 
 @Injectable()
 export class GeminiService {
