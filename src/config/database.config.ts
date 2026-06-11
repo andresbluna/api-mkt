@@ -10,6 +10,11 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'password',
   database: process.env.DB_NAME || 'api_mkt',
+
+  ssl: {
+    rejectUnauthorized: false,
+  },
+
   entities: [User, InteractionLog, Post],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV !== 'production',
