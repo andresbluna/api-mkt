@@ -16,6 +16,7 @@ export class InstagramController {
     return await this.instagramService.getPostStatus(id);
   }
 
+
   @Delete(':id')
   async deletePost(@Param('id') id: string) {
     return await this.instagramService.deletePost(id);

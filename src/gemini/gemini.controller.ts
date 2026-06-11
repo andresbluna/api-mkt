@@ -1,6 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { GeminiService } from './gemini.service';
-import { GenerateCaptionDto, GenerateHashtagsDto, GenerateMarketingPostDto, OptimizeContentDto } from './dto/gemini.dto';
+import {
+  GenerateCaptionDto,
+  GenerateHashtagsDto,
+  GenerateMarketingPostDto,
+  OptimizeContentDto,
+} from './dto/gemini.dto';
 
 @Controller('gemini')
 export class GeminiController {
