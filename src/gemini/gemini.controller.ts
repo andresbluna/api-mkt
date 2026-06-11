@@ -3,6 +3,7 @@ import { GeminiService } from './gemini.service';
 import {
   GenerateCaptionDto,
   GenerateHashtagsDto,
+  GenerateImageDto,
   GenerateMarketingPostDto,
   OptimizeContentDto,
 } from './dto/gemini.dto';
@@ -36,6 +37,16 @@ export class GeminiController {
       dto.platform,
     );
     return { content: optimized };
+  }
+
+  @Post('generate-image')
+  async generateImage(@Body() dto: GenerateImageDto) {
+    const imageBase64 = await this.geminiService.generateImage(dto.prompt);
+
+    return {
+      image: imageBase64,
+      format: 'png',
+    };
   }
 }
 
