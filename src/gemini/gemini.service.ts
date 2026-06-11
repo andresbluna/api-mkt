@@ -124,6 +124,7 @@ export class GeminiService {
 // En gemini.service.ts, reemplaza el método generateImage por este:
 
   async generateImage(prompt: string): Promise<string> {
+    console.log('PROMPT:', prompt);
     const createResponse = await fetch(
       'https://cloud.leonardo.ai/api/rest/v1/generations',
       {

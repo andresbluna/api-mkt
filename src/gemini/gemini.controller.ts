@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Request } from '@nestjs/common';
 import { GeminiService } from './gemini.service';
 import {
   GenerateCaptionDto,
@@ -40,7 +40,9 @@ export class GeminiController {
   }
 
   @Post('generate-image')
-  async generateImage(@Body() dto: GenerateImageDto) {
+  async generateImage(@Body() dto: GenerateImageDto, @Request() req) {
+    console.log('BODY RECIBIDO:', dto);
+    console.log('HEADERS:', req.headers);
     const imageBase64 = await this.geminiService.generateImage(dto.prompt);
 
     return {

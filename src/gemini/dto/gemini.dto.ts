@@ -29,6 +29,8 @@ export class OptimizeContentDto {
 }
 
 export class GenerateImageDto {
+  @IsString()
+  @IsNotEmpty()
   prompt: string;
 }
 
