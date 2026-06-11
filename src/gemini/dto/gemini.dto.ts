@@ -28,3 +28,7 @@ export class OptimizeContentDto {
   platform: string;
 }
 
+export class GenerateImageDto {
+  prompt: string;
+}
+
