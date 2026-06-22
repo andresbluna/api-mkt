@@ -15,11 +15,11 @@ export class UsersController {
   }
 
   /**
-   * Obtener usuario por Firebase UID
+   * Obtener usuario por UUID
    */
-  @Get('firebase/:firebase_uid')
-  async getByFirebase(@Param('firebase_uid') firebase_uid: string) {
-    return await this.usersService.getUserByFirebaseUid(firebase_uid);
+  @Get('uuid/:uuid')
+  async getByUuid(@Param('uuid') uuid: string) {
+    return await this.usersService.getUserByUuid(uuid);
   }
 
   /**

@@ -14,10 +14,13 @@ export class User {
   id: number;
 
   @Column({ unique: true })
-  firebase_uid: string;
+  uuid: string;
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ nullable: true, select: false })
+  password?: string;
 
   @Column({ nullable: true })
   name: string;
