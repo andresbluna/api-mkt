@@ -10,7 +10,7 @@ Backend API para generar contenido de marketing con IA y publicar en redes socia
 - 💾 Base de datos PostgreSQL con TypeORM
 - 📈 Registro de interacciones y logs automáticos
 - ✔️ Validación y manejo de errores completo
-- 🔐 Autenticación con Firebase
+- 🔐 Autenticación (Sistema Propio)
 
 ## 🏗️ Arquitectura del Proyecto
 
@@ -138,14 +138,51 @@ npm run start:prod
 npm run start:debug
 ```
 
+## 🔐 Autenticación (Sistema Propio)
+
+Módulo encargado del registro y login de usuarios mediante un identificador único (UUID).
+
+### Registro de Usuario
+Utiliza este endpoint cuando un usuario se registra por primera vez.
+
+```bash
+curl -X POST http://localhost:3000/auth/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "uuid": "EJEMPLO_UUID_123",
+       "email": "usuario@correo.com",
+       "password": "tu_password_seguro",
+       "name": "Juan Perez"
+     }'
+```
+
+### Login de Usuario
+Utiliza este endpoint para obtener los datos del usuario mediante su email y contraseña.
+
+```bash
+curl -X POST http://localhost:3000/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "usuario@correo.com",
+       "password": "tu_password_seguro"
+     }'
+```
+
 ## 📚 API Endpoints
+
+### Autenticación
+
+```
+POST   /auth/register            - Registro de usuario (Email/Password)
+POST   /auth/login               - Login de usuario (Email/Password)
+```
 
 ### Usuarios
 
 ```
 POST   /users                    - Crear usuario
 GET    /users/:id               - Obtener usuario por ID
-GET    /users/firebase/:uid     - Obtener usuario por Firebase UID
+GET    /users/uuid/:uuid        - Obtener usuario por UUID
 PATCH  /users/:id               - Actualizar usuario
 GET    /users/:id/logs          - Obtener logs del usuario
 GET    /users/:id/stats         - Obtener estadísticas
@@ -199,7 +236,7 @@ DELETE /social/:id               - Desactivar cuenta
 curl -X POST http://localhost:3000/users \
   -H "Content-Type: application/json" \
   -d '{
-    "firebase_uid": "ABC123",
+    "uuid": "ABC123",
     "email": "usuario@ejemplo.com",
     "name": "Juan Pérez",
     "plan": "free"
@@ -241,8 +278,9 @@ curl -X POST http://localhost:3000/posts/1/publish \
 ```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
-  firebase_uid VARCHAR UNIQUE NOT NULL,
+  uuid VARCHAR UNIQUE NOT NULL,
   email VARCHAR UNIQUE NOT NULL,
+  password VARCHAR,
   name VARCHAR,
   plan VARCHAR DEFAULT 'free',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

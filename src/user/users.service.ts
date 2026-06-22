@@ -3,9 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InteractionLog } from './interaction-log.entity';
@@ -24,13 +26,19 @@ export class UsersService {
    */
   async createUser(dto: CreateUserDto) {
     try {
-      // Verificar si ya existe
+      // Verificar si ya existe por UUID o Email
       const existingUser = await this.userRepository.findOne({
-        where: { firebase_uid: dto.firebase_uid },
+        where: [{ uuid: dto.uuid }, { email: dto.email }],
       });
 
       if (existingUser) {
-        throw new ConflictException('El usuario ya existe');
+        throw new ConflictException('El usuario o email ya existe');
+      }
+
+      // Hashear contraseña si se proporciona
+      if (dto.password) {
+        const salt = await bcrypt.genSalt();
+        dto.password = await bcrypt.hash(dto.password, salt);
       }
 
       const user = this.userRepository.create(dto);
@@ -43,6 +51,8 @@ export class UsersService {
         metadata: { email: savedUser.email },
       });
 
+      // No devolver el password
+      delete savedUser.password;
       return savedUser;
     } catch (error) {
       if (error instanceof ConflictException) throw error;
@@ -51,11 +61,40 @@ export class UsersService {
   }
 
   /**
-   * Obtener usuario por Firebase UID
+   * Validar credenciales de usuario (Login)
    */
-  async getUserByFirebaseUid(firebase_uid: string) {
+  async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userRepository.findOne({
-      where: { firebase_uid },
+      where: { email },
+      select: ['id', 'uuid', 'email', 'password', 'name', 'plan'],
+    });
+
+    if (user && user.password) {
+      const isMatch = await bcrypt.compare(pass, user.password);
+      if (isMatch) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...result } = user;
+        
+        // Log de login
+        await this.logRepository.save({
+          user: { id: user.id },
+          action: 'login',
+          metadata: { method: 'password' },
+        });
+
+        return result;
+      }
+    }
+    
+    throw new UnauthorizedException('Credenciales inválidas');
+  }
+
+  /**
+   * Obtener usuario por UUID
+   */
+  async getUserByUuid(uuid: string) {
+    const user = await this.userRepository.findOne({
+      where: { uuid: uuid },
       relations: ['logs'],
     });
 

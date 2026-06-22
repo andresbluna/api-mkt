@@ -6,6 +6,7 @@ import { GeminiModule } from './gemini/gemini.module';
 import { InstagramModule } from './instagram/instagram.module';
 import { PostsModule } from './posts/posts.module';
 import { UsersModule } from './user/users.module';
+import { AuthModule } from './auth/auth.module';
 import { User } from './user/user.entity';
 import { InteractionLog } from './user/interaction-log.entity';
 import { Post } from './posts/entities/post.entity';
@@ -19,6 +20,7 @@ import { Post } from './posts/entities/post.entity';
     TypeOrmModule.forRoot(getDatabaseConfig()),
     TypeOrmModule.forFeature([User, InteractionLog, Post]),
     UsersModule,
+    AuthModule,
     GeminiModule,
     InstagramModule,
     PostsModule,
