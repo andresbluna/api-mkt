@@ -28,7 +28,7 @@ export class UsersService {
     try {
       // Verificar si ya existe por UUID o Email
       const existingUser = await this.userRepository.findOne({
-        where: [{ uuid: dto.uuid }, { email: dto.email }],
+        where: { email: dto.email },
       });
 
       if (existingUser) {
