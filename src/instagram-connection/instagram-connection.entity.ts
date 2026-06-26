@@ -16,13 +16,13 @@ export class InstagramConnection {
   id: string;
 
   @Column()
-  userId: string; // almacena el uuid del usuario
+  userId: number; // 👈 Cambiado de string a number
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId', referencedColumnName: 'uuid' }) // usa uuid como referencia
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column()
+  @Column({ type: 'text' })
   accessToken: string;
 
   @Column()

@@ -74,8 +74,11 @@ export class InstagramApiService {
     accessToken: string,
   ): Promise<string> {
     const url = `${this.baseUrl}/${igUserId}/media`;
-    const params = { image_url: imageUrl, caption, access_token: accessToken };
-    const response = await axios.post(url, null, { params });
+    const response = await axios.post(url, {
+      image_url: imageUrl,
+      caption,
+      access_token: accessToken,
+    });
     return response.data.id;
   }
 
@@ -85,8 +88,10 @@ export class InstagramApiService {
     accessToken: string,
   ): Promise<string> {
     const url = `${this.baseUrl}/${igUserId}/media_publish`;
-    const params = { creation_id: creationId, access_token: accessToken };
-    const response = await axios.post(url, null, { params });
+    const response = await axios.post(url, {
+      creation_id: creationId,
+      access_token: accessToken,
+    });
     return response.data.id;
   }
 
