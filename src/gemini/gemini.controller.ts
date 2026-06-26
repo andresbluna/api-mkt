@@ -2,7 +2,7 @@ import { Controller, Post, Body, Request } from '@nestjs/common';
 import { GeminiService } from './gemini.service';
 import { GenerateImageDto } from './dto/gemini.dto';
 
-@Controller('generate')
+@Controller('gemini')
 export class GeminiController {
   constructor(private readonly geminiService: GeminiService) {}
 
