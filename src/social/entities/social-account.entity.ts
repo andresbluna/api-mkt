@@ -18,7 +18,7 @@ export class SocialAccount {
   user_id: number;
 
   @Column()
-  platform: string; // instagram, facebook, twitter, etc.
+  platform: string; // instagram-auth, facebook, twitter, etc.
 
   @Column()
   account_id: string; // ID de la cuenta en la plataforma
