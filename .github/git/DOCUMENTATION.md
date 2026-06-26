@@ -307,7 +307,7 @@ CREATE TABLE posts (
   title VARCHAR NOT NULL,
   content TEXT NOT NULL,
   image_url VARCHAR,
-  platform VARCHAR DEFAULT 'instagram',
+  platform VARCHAR DEFAULT 'instagram-auth',
   status VARCHAR DEFAULT 'draft',
   instagram_media_id VARCHAR,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -1,7 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from '../user/user.entity';
 import { InteractionLog } from '../user/interaction-log.entity';
-import { Post } from '../posts/entities/post.entity';
 
 export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   type: 'postgres',
@@ -15,7 +14,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
     rejectUnauthorized: false,
   },
 
-  entities: [User, InteractionLog, Post],
+  entities: [User, InteractionLog ],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV !== 'production',
   dropSchema: false,
