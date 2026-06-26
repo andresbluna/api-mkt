@@ -3,6 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InstagramApiService } from '../instagram-api/instagram-api.service';
 import { InstagramConnectionService } from '../instagram-connection/instagram-connection.service';
+import { InstagramConnection } from '../instagram-connection/instagram-connection.entity';
 
 @Injectable()
 export class InstagramAuthService {
@@ -11,6 +12,58 @@ export class InstagramAuthService {
     private instagramApi: InstagramApiService,
     private connectionService: InstagramConnectionService,
   ) {}
+
+  /**
+   * Genera la URL de autorización de Meta para redirigir al usuario
+   */
+  getAuthUrl(userId: string): string {
+    const appId = this.configService.get('META_APP_ID');
+    const redirectUri = this.configService.get('META_REDIRECT_URI');
+    const graphVersion =
+      this.configService.get('META_GRAPH_VERSION') || 'v19.0';
+    const scope =
+      'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement';
+
+    return (
+      `https://www.facebook.com/${graphVersion}/dialog/oauth` +
+      `?client_id=${appId}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&state=${userId}` +
+      `&response_type=code`
+    );
+  }
+
+  /**
+   * Devuelve el estado de conexión de Instagram de un usuario
+   */
+  async getStatus(userId: number): Promise<{
+    connected: boolean;
+    igUserId?: string;
+    pageId?: string;
+    expiresAt?: Date;
+  }> {
+    try {
+      const conn: InstagramConnection =
+        await this.connectionService.getConnection(userId);
+      return {
+        connected: true,
+        igUserId: conn.igUserId,
+        pageId: conn.pageId,
+        expiresAt: conn.expiresAt,
+      };
+    } catch {
+      return { connected: false };
+    }
+  }
+
+  /**
+   * Elimina la conexión de Instagram de un usuario
+   */
+  async disconnect(userId: number): Promise<{ success: boolean }> {
+    await this.connectionService.deleteConnection(userId);
+    return { success: true };
+  }
 
   /**
    * Maneja el callback de OAuth después de que el usuario autoriza en Meta

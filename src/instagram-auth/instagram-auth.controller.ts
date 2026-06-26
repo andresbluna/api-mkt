@@ -2,7 +2,9 @@
 import {
   Controller,
   Get,
+  Delete,
   Query,
+  Param,
   Res,
   BadRequestException,
 } from '@nestjs/common';
@@ -16,45 +18,69 @@ export class InstagramAuthController {
     private instagramAuthService: InstagramAuthService,
   ) {}
 
+  /**
+   * Devuelve la URL de OAuth de Meta como JSON.
+   * El frontend redirige al usuario a esa URL.
+   * GET /instagram/auth/url?userId=123
+   */
+  @Get('url')
+  getAuthUrl(@Query('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('userId es requerido');
+    }
+    const url = this.instagramAuthService.getAuthUrl(userId);
+    return { url };
+  }
+
+  /**
+   * Consulta si un usuario tiene Instagram conectado.
+   * GET /instagram/auth/status/:userId
+   */
+  @Get('status/:userId')
+  async getStatus(@Param('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('userId es requerido');
+    }
+    return this.instagramAuthService.getStatus(parseInt(userId, 10));
+  }
+
+  /**
+   * Desconecta la cuenta de Instagram de un usuario.
+   * DELETE /instagram/auth/disconnect/:userId
+   */
+  @Delete('disconnect/:userId')
+  async disconnect(@Param('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('userId es requerido');
+    }
+    return this.instagramAuthService.disconnect(parseInt(userId, 10));
+  }
+
+  /**
+   * Redirige directamente al usuario a la URL de OAuth (navegador).
+   * GET /instagram/auth/login?userId=123
+   */
   @Get('login')
   login(@Query('userId') userId: string, @Res() res) {
     if (!userId) {
-      throw new BadRequestException('userId es requerido (número)');
+      throw new BadRequestException('userId es requerido');
     }
-    const appId = this.configService.get('META_APP_ID');
-    const redirectUri = this.configService.get('META_REDIRECT_URI');
-    const graphVersion =
-      this.configService.get('META_GRAPH_VERSION') || 'v19.0';
-    const scope =
-      'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement';
-
-    // state contiene el userId (se enviará como string)
-    const state = userId;
-
-    const authUrl =
-      `https://www.facebook.com/${graphVersion}/dialog/oauth` +
-      `?client_id=${appId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&scope=${encodeURIComponent(scope)}` +
-      `&state=${state}` +
-      `&response_type=code`;
-
-    return res.redirect(authUrl);
+    const url = this.instagramAuthService.getAuthUrl(userId);
+    return res.redirect(url);
   }
 
+  /**
+   * Callback automático de Meta — no llamar manualmente.
+   * GET /instagram/auth/callback?code=...&state={userId}
+   */
   @Get('callback')
   async callback(@Query('code') code: string, @Query('state') state: string) {
     if (!code) {
       throw new BadRequestException('No se recibió código de autorización');
     }
-    if (!state) {
+    if (!state || state.trim() === '') {
       throw new BadRequestException('Falta state');
     }
-    // El userId es string (UUID), no número
-    const userId = state;
-    if (!userId || userId.trim() === '') {
-      throw new BadRequestException('userId inválido en state');
-    }
-    return this.instagramAuthService.handleOAuthCallback(userId, code);
+    return this.instagramAuthService.handleOAuthCallback(state, code);
   }
 }

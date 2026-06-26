@@ -12,7 +12,9 @@ import {
 } from '@nestjs/common';
 import { InstagramPublishService } from './instagram-publish.service';
 import { PublishPostDto } from './dto/publish-post.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('instagram/publish')
 export class InstagramPublishController {
   constructor(private instagramPublishService: InstagramPublishService) {}
