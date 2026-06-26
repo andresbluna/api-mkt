@@ -6,6 +6,7 @@ import { GenerateImageDto } from './dto/gemini.dto';
 export class GeminiController {
   constructor(private readonly geminiService: GeminiService) {}
 
+
   @Post('generate-image')
   async generateImage(@Body() dto: GenerateImageDto, @Request() req) {
     console.log('BODY RECIBIDO:', dto);
