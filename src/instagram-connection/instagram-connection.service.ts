@@ -11,15 +11,16 @@ export class InstagramConnectionService {
     private connectionRepo: Repository<InstagramConnection>,
   ) {}
 
+  // 👇 userId: number
   async saveConnection(
-    userId: string,
+    userId: number,
     data: {
       accessToken: string;
       igUserId: string;
       pageId: string;
       expiresAt: Date;
     },
-  ) {
+  ): Promise<InstagramConnection> {
     let connection = await this.connectionRepo.findOne({ where: { userId } });
     if (connection) {
       connection.accessToken = data.accessToken;
@@ -35,7 +36,7 @@ export class InstagramConnectionService {
     return this.connectionRepo.save(connection);
   }
 
-  async getConnection(userId: string): Promise<InstagramConnection> {
+  async getConnection(userId: number): Promise<InstagramConnection> {
     const conn = await this.connectionRepo.findOne({ where: { userId } });
     if (!conn) {
       throw new NotFoundException(
@@ -45,14 +46,14 @@ export class InstagramConnectionService {
     return conn;
   }
 
-  async updateToken(userId: string, newToken: string, expiresAt: Date) {
+  async updateToken(userId: number, newToken: string, expiresAt: Date) {
     const conn = await this.getConnection(userId);
     conn.accessToken = newToken;
     conn.expiresAt = expiresAt;
     return this.connectionRepo.save(conn);
   }
 
-  async deleteConnection(userId: string) {
+  async deleteConnection(userId: number) {
     await this.connectionRepo.delete({ userId });
   }
 }

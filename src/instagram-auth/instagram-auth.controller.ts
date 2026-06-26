@@ -4,7 +4,6 @@ import {
   Get,
   Query,
   Res,
-  Req,
   BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -20,7 +19,7 @@ export class InstagramAuthController {
   @Get('login')
   login(@Query('userId') userId: string, @Res() res) {
     if (!userId) {
-      throw new BadRequestException('userId es requerido');
+      throw new BadRequestException('userId es requerido (número)');
     }
     const appId = this.configService.get('META_APP_ID');
     const redirectUri = this.configService.get('META_REDIRECT_URI');
@@ -29,7 +28,8 @@ export class InstagramAuthController {
     const scope =
       'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement';
 
-    const state = userId; // podrías concatenar un nonce
+    // state contiene el userId (se enviará como string)
+    const state = userId;
 
     const authUrl =
       `https://www.facebook.com/${graphVersion}/dialog/oauth` +
@@ -50,7 +50,11 @@ export class InstagramAuthController {
     if (!state) {
       throw new BadRequestException('Falta state');
     }
+    // El userId es string (UUID), no número
     const userId = state;
+    if (!userId || userId.trim() === '') {
+      throw new BadRequestException('userId inválido en state');
+    }
     return this.instagramAuthService.handleOAuthCallback(userId, code);
   }
 }
