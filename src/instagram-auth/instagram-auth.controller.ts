@@ -71,22 +71,7 @@ export class InstagramAuthController {
   }
 
   /**
-   * Callback automático de Meta — no llamar manualmente.
-   * GET /instagram/auth/callback?code=...&state={userId}
+   * Callback automático de Meta — manejado por InstagramCallbackController.
+   * Ver: GET /auth/instagram/callback
    */
-  @Get('callback')
-  async callback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-    @Res() res: Response,
-  ) {
-    if (!code) {
-      throw new BadRequestException('No se recibió código de autorización');
-    }
-    if (!state || state.trim() === '') {
-      throw new BadRequestException('Falta state');
-    }
-    await this.instagramAuthService.handleOAuthCallback(state, code);
-    return res.redirect('samapp://instagram-success?connected=true');
-  }
 }
