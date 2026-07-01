@@ -11,15 +11,13 @@ export class InstagramConnectionService {
     private connectionRepo: Repository<InstagramConnection>,
   ) {}
 
-  // 👇 userId: number
   async saveConnection(
     userId: number,
     data: {
       accessToken: string;
       igUserId: string;
       pageId?: string | null;
-      username?: string | null;
-      expiresAt: Date;
+      expiresAt: Date | null;
     },
   ): Promise<InstagramConnection> {
     let connection = await this.connectionRepo.findOne({ where: { userId } });
@@ -27,7 +25,6 @@ export class InstagramConnectionService {
       connection.accessToken = data.accessToken;
       connection.igUserId = data.igUserId;
       connection.pageId = data.pageId ?? null;
-      connection.username = data.username ?? null;
       connection.expiresAt = data.expiresAt;
     } else {
       connection = this.connectionRepo.create({
@@ -35,7 +32,6 @@ export class InstagramConnectionService {
         accessToken: data.accessToken,
         igUserId: data.igUserId,
         pageId: data.pageId ?? null,
-        username: data.username ?? null,
         expiresAt: data.expiresAt,
       });
     }
@@ -52,7 +48,11 @@ export class InstagramConnectionService {
     return conn;
   }
 
-  async updateToken(userId: number, newToken: string, expiresAt: Date) {
+  async updateToken(
+    userId: number,
+    newToken: string,
+    expiresAt: Date | null,
+  ) {
     const conn = await this.getConnection(userId);
     conn.accessToken = newToken;
     conn.expiresAt = expiresAt;

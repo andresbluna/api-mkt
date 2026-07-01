@@ -21,39 +21,39 @@ export class InstagramApiService {
     this.appSecret = this.configService.get<string>('META_APP_SECRET') ?? '';
   }
 
-  /** Base URL para Instagram Graph API (Instagram Login) */
+  /**
+   * Base URL para "Instagram API with Facebook Login".
+   * Todos los endpoints (token, pages, media) usan graph.facebook.com.
+   * NO usar graph.instagram.com — ese dominio es de Instagram Login.
+   */
   private get baseUrl() {
-    return `https://graph.instagram.com/${this.graphVersion}`;
+    return `https://graph.facebook.com/${this.graphVersion}`;
   }
 
   /**
-   * Intercambia el authorization_code por un access token de corta duración.
+   * Intercambia el authorization_code por un User Access Token de corta duración.
    *
-   * CORRECCIÓN: El flujo es Instagram Login, NO Facebook Login.
-   * - URL correcta: https://api.instagram.com/oauth/access_token  (no graph.facebook.com)
-   * - Método correcto: POST con body application/x-www-form-urlencoded  (no GET)
-   * - grant_type requerido: authorization_code
+   * Flujo: "Instagram API with Facebook Login"
+   * - URL: graph.facebook.com  (NO api.instagram.com)
+   * - Método: GET con params en query string  (NO POST urlencoded)
+   * - NO devuelve user_id — el IG user ID se obtiene vía Pages
    *
-   * Respuesta incluye: { access_token, token_type, expires_in, user_id }
-   * El campo user_id es el Instagram User ID directo — sin necesidad de páginas de Facebook.
+   * Respuesta: { access_token, token_type, expires_in }
    */
   async exchangeCodeForToken(
     code: string,
     redirectUri: string,
-  ): Promise<{ access_token: string; token_type: string; expires_in: number; user_id: number }> {
-    const url = 'https://api.instagram.com/oauth/access_token';
-
-    const body = new URLSearchParams({
-      client_id: this.appId,
-      client_secret: this.appSecret,
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
-      code,
-    });
+  ): Promise<{ access_token: string; token_type: string; expires_in: number }> {
+    const url = `${this.baseUrl}/oauth/access_token`;
 
     try {
-      const response = await axios.post(url, body.toString(), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      const response = await axios.get(url, {
+        params: {
+          client_id: this.appId,
+          client_secret: this.appSecret,
+          redirect_uri: redirectUri,
+          code,
+        },
       });
       return response.data;
     } catch (err) {
@@ -62,26 +62,27 @@ export class InstagramApiService {
   }
 
   /**
-   * Intercambia el token de corta duración por uno de larga duración (~60 días).
+   * Intercambia el User Token de corta duración por uno de larga duración (~60 días).
    *
-   * CORRECCIÓN: El grant_type correcto es ig_exchange_token (no fb_exchange_token).
-   * - URL correcta: https://graph.instagram.com/access_token  (no graph.facebook.com)
-   * - Parámetros correctos: grant_type, client_secret, access_token
-   * - No se envía client_id (no requerido para este endpoint)
+   * Flujo: Facebook Login
+   * - URL: graph.facebook.com  (NO graph.instagram.com)
+   * - grant_type: fb_exchange_token  (NO ig_exchange_token)
+   * - Requiere client_id + client_secret + fb_exchange_token
    *
    * Respuesta: { access_token, token_type, expires_in }
    */
   async exchangeForLongLivedToken(
     shortToken: string,
   ): Promise<{ access_token: string; token_type: string; expires_in: number }> {
-    const url = 'https://graph.instagram.com/access_token';
+    const url = `${this.baseUrl}/oauth/access_token`;
 
     try {
       const response = await axios.get(url, {
         params: {
-          grant_type: 'ig_exchange_token',
+          grant_type: 'fb_exchange_token',
+          client_id: this.appId,
           client_secret: this.appSecret,
-          access_token: shortToken,
+          fb_exchange_token: shortToken,
         },
       });
       return response.data;
@@ -91,57 +92,70 @@ export class InstagramApiService {
   }
 
   /**
-   * Renueva un long-lived token antes de que expire (válido después de 24 h de emisión).
-   * El nuevo token tendrá otros ~60 días de vigencia.
+   * Obtiene las páginas de Facebook administradas por el usuario.
+   *
+   * IMPORTANTE: Llamar con un long-lived User Token para que los page access_token
+   * devueltos sean PERMANENTES (no expiran hasta que el usuario revoca el permiso).
+   *
+   * Respuesta: [{ id, name, access_token (permanente) }]
    */
-  async refreshLongLivedToken(
-    longToken: string,
-  ): Promise<{ access_token: string; token_type: string; expires_in: number }> {
-    const url = 'https://graph.instagram.com/refresh_access_token';
+  async getPages(
+    longLivedUserToken: string,
+  ): Promise<Array<{ id: string; name: string; access_token: string }>> {
+    const url = `${this.baseUrl}/me/accounts`;
 
     try {
       const response = await axios.get(url, {
         params: {
-          grant_type: 'ig_refresh_token',
-          access_token: longToken,
+          fields: 'id,name,access_token',
+          access_token: longLivedUserToken,
         },
       });
-      return response.data;
+      return response.data.data;
     } catch (err) {
-      this.handleApiError(err, 'refreshLongLivedToken');
+      this.handleApiError(err, 'getPages');
     }
   }
 
   /**
-   * Obtiene el perfil del usuario autenticado: { id, username }.
-   *
-   * CORRECCIÓN: Reemplaza el flujo getPages → getIgBusinessId.
-   * Con Instagram Login el user_id ya viene en el token exchange.
-   * Este método se usa para obtener el username si se desea almacenarlo.
+   * Obtiene el Instagram Business Account ID vinculado a una Facebook Page.
+   * Devuelve el igUserId usado en todos los endpoints de media.
    */
-  async getInstagramUser(
-    accessToken: string,
-  ): Promise<{ id: string; username: string }> {
-    const url = `${this.baseUrl}/me`;
+  async getIgBusinessId(
+    pageId: string,
+    pageAccessToken: string,
+  ): Promise<string> {
+    const url = `${this.baseUrl}/${pageId}`;
 
     try {
       const response = await axios.get(url, {
         params: {
-          fields: 'id,username',
-          access_token: accessToken,
+          fields: 'instagram_business_account',
+          access_token: pageAccessToken,
         },
       });
-      return response.data;
+
+      const ig = response.data?.instagram_business_account;
+      if (!ig?.id) {
+        throw new BadRequestException(
+          `La página de Facebook (id=${pageId}) no tiene una cuenta de Instagram Business o Creator vinculada. ` +
+            `Ve a Configuración de la página → Instagram → Conectar cuenta.`,
+        );
+      }
+      return ig.id;
     } catch (err) {
-      this.handleApiError(err, 'getInstagramUser');
+      if (err instanceof BadRequestException) throw err;
+      this.handleApiError(err, 'getIgBusinessId');
     }
   }
 
   /**
    * Crea un contenedor de media para una imagen.
-   * CORRECCIÓN: Se usan query params (estándar de la API) en lugar de JSON body sin Content-Type.
    *
-   * Ref: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/content-publishing
+   * Usa graph.facebook.com (Facebook Login).
+   * El access_token debe ser el page access token permanente.
+   *
+   * Ref: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/content-publishing
    */
   async createMediaContainer(
     igUserId: string,
@@ -167,7 +181,7 @@ export class InstagramApiService {
 
   /**
    * Publica un contenedor de media previamente creado.
-   * CORRECCIÓN: Se usan query params en lugar de JSON body sin Content-Type.
+   * El access_token debe ser el page access token permanente.
    */
   async publishMedia(
     igUserId: string,
@@ -190,8 +204,8 @@ export class InstagramApiService {
   }
 
   /**
-   * Obtiene estado y metadatos de un objeto de media publicado.
-   * Se agrega 'permalink' y 'status_code' a los campos consultados.
+   * Obtiene estado y metadatos de un objeto de media.
+   * status_code: FINISHED | IN_PROGRESS | ERROR | EXPIRED
    */
   async getMediaStatus(mediaId: string, accessToken: string): Promise<any> {
     const url = `${this.baseUrl}/${mediaId}`;
@@ -211,9 +225,7 @@ export class InstagramApiService {
   }
 
   /**
-   * CORRECCIÓN: La Instagram Graph API NO soporta eliminar publicaciones ya publicadas
-   * mediante la API. Esto sólo es posible desde la app de Instagram directamente.
-   * Se lanza un error descriptivo en lugar de llamar un endpoint inexistente.
+   * La Instagram Graph API no soporta eliminar publicaciones ya publicadas.
    */
   async deleteMedia(_mediaId: string, _accessToken: string): Promise<void> {
     throw new NotImplementedException(
@@ -223,8 +235,7 @@ export class InstagramApiService {
   }
 
   /**
-   * Manejo centralizado de errores de la Meta API.
-   * Interpreta los códigos de error de Meta y lanza excepciones descriptivas.
+   * Manejo centralizado de errores de Meta API.
    */
   private handleApiError(err: unknown, context: string): never {
     if (axios.isAxiosError(err)) {
@@ -239,7 +250,7 @@ export class InstagramApiService {
           );
         if (code === 200 || code === 10)
           throw new BadRequestException(
-            `Permisos insuficientes [${context}]: ${message}`,
+            `Permisos insuficientes [${context}]: ${message}. Verifica que los scopes estén aprobados en Meta Developer Console.`,
           );
         if (code === 4)
           throw new BadRequestException(
@@ -247,11 +258,11 @@ export class InstagramApiService {
           );
         if (code === 100 && error_subcode === 2207051)
           throw new BadRequestException(
-            `La URL de la imagen no es accesible por Instagram. Asegúrate de que sea pública y HTTPS.`,
+            `La URL de la imagen no es accesible por Instagram. Debe ser pública, HTTPS y menor a 8MB.`,
           );
         if (code === 100 && error_subcode === 2207026)
           throw new BadRequestException(
-            `El contenedor de media aún no está listo para publicarse (status: IN_PROGRESS). Espera unos segundos e intenta nuevamente.`,
+            `El contenedor de media aún no está listo (IN_PROGRESS). Espera unos segundos e intenta nuevamente.`,
           );
         if (code === 36000)
           throw new BadRequestException(
@@ -264,11 +275,6 @@ export class InstagramApiService {
       }
 
       const status = err.response?.status;
-      if (status === 400)
-        throw new BadRequestException(
-          `Solicitud inválida [${context}]: ${err.message}. Revisa redirect_uri y credenciales.`,
-        );
-
       throw new InternalServerErrorException(
         `Error HTTP ${status ?? 'desconocido'} [${context}]: ${err.message}`,
       );
