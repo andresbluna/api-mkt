@@ -16,7 +16,7 @@ export class InstagramConnection {
   id: string;
 
   @Column()
-  userId: number; // 👈 Cambiado de string a number
+  userId: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
@@ -29,18 +29,20 @@ export class InstagramConnection {
   igUserId: string;
 
   /**
-   * CORRECCIÓN: nullable porque con Instagram Login no existe el concepto de Facebook Page.
-   * Se mantiene el campo para compatibilidad hacia atrás con registros existentes.
+   * ID de la Facebook Page vinculada a la cuenta de Instagram Business.
+   * Requerido para "Instagram API with Facebook Login".
+   * Nullable para compatibilidad con registros previos.
    */
   @Column({ nullable: true, default: null })
   pageId: string | null;
 
-  /** Username de Instagram, almacenado en el callback para referencia rápida */
-  @Column({ nullable: true, default: null })
-  username: string | null;
-
-  @Column({ type: 'timestamp' })
-  expiresAt: Date;
+  /**
+   * Fecha de expiración del access token.
+   * NULL cuando se almacena un page access token permanente
+   * (derivado de un long-lived user token vía /me/accounts).
+   */
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  expiresAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

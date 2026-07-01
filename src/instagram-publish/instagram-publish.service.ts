@@ -16,7 +16,7 @@ export class InstagramPublishService {
   async publishPost(userId: number, imageUrl: string, caption: string) {
     const conn = await this.connectionService.getConnection(userId);
 
-    // Verificar que el token no haya expirado
+    // Page access tokens permanentes no tienen expiresAt — solo verificar si hay fecha y expiró
     if (conn.expiresAt && conn.expiresAt < new Date()) {
       throw new BadRequestException(
         'El access token de Instagram ha expirado. El usuario debe volver a conectar su cuenta.',
