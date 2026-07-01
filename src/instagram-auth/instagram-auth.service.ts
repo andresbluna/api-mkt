@@ -21,8 +21,10 @@ export class InstagramAuthService {
     const redirectUri = this.configService.get('META_REDIRECT_URI');
     const graphVersion =
       this.configService.get('META_GRAPH_VERSION') || 'v19.0';
-    const scope =
-      'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement';
+    const scope = [
+      'instagram_business_basic',
+      'instagram_business_content_publish',
+    ].join(',');
 
     return (
       `https://www.instagram.com/oauth/authorize` +
