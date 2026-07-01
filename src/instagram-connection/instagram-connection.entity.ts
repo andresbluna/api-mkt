@@ -28,8 +28,16 @@ export class InstagramConnection {
   @Column()
   igUserId: string;
 
-  @Column()
-  pageId: string;
+  /**
+   * CORRECCIÓN: nullable porque con Instagram Login no existe el concepto de Facebook Page.
+   * Se mantiene el campo para compatibilidad hacia atrás con registros existentes.
+   */
+  @Column({ nullable: true, default: null })
+  pageId: string | null;
+
+  /** Username de Instagram, almacenado en el callback para referencia rápida */
+  @Column({ nullable: true, default: null })
+  username: string | null;
 
   @Column({ type: 'timestamp' })
   expiresAt: Date;

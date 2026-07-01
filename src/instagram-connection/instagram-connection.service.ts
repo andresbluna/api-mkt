@@ -17,7 +17,8 @@ export class InstagramConnectionService {
     data: {
       accessToken: string;
       igUserId: string;
-      pageId: string;
+      pageId?: string | null;
+      username?: string | null;
       expiresAt: Date;
     },
   ): Promise<InstagramConnection> {
@@ -25,12 +26,17 @@ export class InstagramConnectionService {
     if (connection) {
       connection.accessToken = data.accessToken;
       connection.igUserId = data.igUserId;
-      connection.pageId = data.pageId;
+      connection.pageId = data.pageId ?? null;
+      connection.username = data.username ?? null;
       connection.expiresAt = data.expiresAt;
     } else {
       connection = this.connectionRepo.create({
         userId,
-        ...data,
+        accessToken: data.accessToken,
+        igUserId: data.igUserId,
+        pageId: data.pageId ?? null,
+        username: data.username ?? null,
+        expiresAt: data.expiresAt,
       });
     }
     return this.connectionRepo.save(connection);
