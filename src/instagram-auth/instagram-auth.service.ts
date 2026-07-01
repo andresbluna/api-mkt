@@ -25,7 +25,7 @@ export class InstagramAuthService {
       'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement';
 
     return (
-      `https://www.facebook.com/${graphVersion}/dialog/oauth` +
+      `https://www.facebook.com/dialog/oauth` +
       `?client_id=${appId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=${encodeURIComponent(scope)}` +
