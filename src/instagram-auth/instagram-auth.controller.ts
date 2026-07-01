@@ -12,7 +12,7 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { InstagramAuthService } from './instagram-auth.service';
 
-@Controller('auth/instagram')
+@Controller('instagram/auth')
 export class InstagramAuthController {
   constructor(
     private configService: ConfigService,
