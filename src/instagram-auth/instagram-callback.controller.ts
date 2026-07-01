@@ -18,6 +18,7 @@ import { InstagramAuthService } from './instagram-auth.service';
 export class InstagramCallbackController {
   constructor(private instagramAuthService: InstagramAuthService) {}
 
+
   @Get('callback')
   async callback(
     @Query('code') code: string,
